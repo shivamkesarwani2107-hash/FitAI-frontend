@@ -1,85 +1,45 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 function Shop() {
   const navigate = useNavigate();
 
+  const [products, setProducts] = useState([]);
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
 
-  const products = [
-    {
-      id: 1,
-      name: "Whey Protein",
-      category: "Protein",
-      price: 2499,
-      oldPrice: 2999,
-      image: "🥛",
-    },
-    {
-      id: 2,
-      name: "Gym Shaker",
-      category: "Accessories",
-      price: 499,
-      oldPrice: 699,
-      image: "🥤",
-    },
-    {
-      id: 3,
-      name: "Lifting Straps",
-      category: "Accessories",
-      price: 399,
-      oldPrice: 599,
-      image: "💪",
-    },
-    {
-      id: 4,
-      name: "Training Gloves",
-      category: "Accessories",
-      price: 699,
-      oldPrice: 899,
-      image: "🧤",
-    },
-    {
-      id: 5,
-      name: "Resistance Bands",
-      category: "Equipment",
-      price: 799,
-      oldPrice: 999,
-      image: "🏋️",
-    },
-    {
-      id: 6,
-      name: "Gym Belt",
-      category: "Equipment",
-      price: 999,
-      oldPrice: 1299,
-      image: "🥋",
-    },
-    {
-      id: 7,
-      name: "Running Shoes",
-      category: "Footwear",
-      price: 1999,
-      oldPrice: 2499,
-      image: "👟",
-    },
-    {
-      id: 8,
-      name: "Mass Gainer",
-      category: "Protein",
-      price: 2899,
-      oldPrice: 3499,
-      image: "🥤",
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch("http://localhost:4000/products");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const data = await response.json();
+
+        setProducts(data.products || []);
+      } catch (error) {
+        console.error("PRODUCT FETCH ERROR:", error);
+        setError("Unable to load products. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const categories = [
     "All",
-    "Protein",
-    "Accessories",
-    "Equipment",
-    "Footwear",
+    ...new Set(products.map((product) => product.category)),
   ];
 
   const filteredProducts = products.filter((product) => {
@@ -95,10 +55,8 @@ function Shop() {
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
-
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
 
-        {/* Header */}
         <div>
           <p className="font-bold text-lime-600">
             FITAI SHOP
@@ -113,7 +71,6 @@ function Shop() {
           </p>
         </div>
 
-        {/* Search */}
         <div className="mt-8">
           <input
             type="text"
@@ -124,7 +81,6 @@ function Shop() {
           />
         </div>
 
-        {/* Categories */}
         <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
           {categories.map((item) => (
             <button
@@ -141,7 +97,6 @@ function Shop() {
           ))}
         </div>
 
-        {/* Top Row */}
         <div className="mt-8 flex items-center justify-between">
           <p className="text-sm text-slate-500">
             {filteredProducts.length} products
@@ -149,73 +104,113 @@ function Shop() {
 
           <button
             onClick={() => navigate("/cart")}
-            className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white"
+            className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-lime-500 hover:text-slate-950"
           >
             Cart
           </button>
         </div>
 
-        {/* Products */}
-        <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white"
-            >
-
-              <div className="flex h-36 items-center justify-center bg-slate-100 text-5xl sm:h-48 sm:text-6xl">
-                {product.image}
-              </div>
-
-              <div className="p-4">
-
-                <p className="text-xs font-bold text-lime-600">
-                  {product.category}
-                </p>
-
-                <h2 className="mt-2 text-sm font-bold sm:text-base">
-                  {product.name}
-                </h2>
-
-                <div className="mt-2">
-                  <span className="font-black">
-                    ₹{product.price.toLocaleString("en-IN")}
-                  </span>
-
-                  <span className="ml-2 text-xs text-slate-400 line-through">
-                    ₹{product.oldPrice.toLocaleString("en-IN")}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() =>
-                    navigate(`/products/${product.id}`)
-                  }
-                  className="mt-4 w-full rounded-lg bg-slate-950 py-2 text-sm font-bold text-white hover:bg-lime-500 hover:text-slate-950"
-                >
-                  View Product
-                </button>
-
-              </div>
-
-            </div>
-          ))}
-
-        </div>
-
-        {filteredProducts.length === 0 && (
+        {loading && (
           <div className="py-20 text-center">
-            <h2 className="text-xl font-bold">
-              No products found
-            </h2>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Try another search or category.
+            <p className="text-lg font-bold">
+              Loading products...
             </p>
           </div>
         )}
 
+        {!loading && error && (
+          <div className="py-20 text-center">
+            <p className="font-bold text-red-500">
+              {error}
+            </p>
+
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 rounded-lg bg-slate-950 px-5 py-2 text-sm font-bold text-white"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {filteredProducts.map((product) => (
+              <div
+                key={product._id}
+                className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+              >
+                <div className="flex h-36 items-center justify-center bg-slate-100 text-5xl sm:h-48 sm:text-6xl">
+                  {product.image}
+                </div>
+
+                <div className="p-4">
+                  <p className="text-xs font-bold text-lime-600">
+                    {product.category}
+                  </p>
+
+                  <h2 className="mt-2 text-sm font-bold sm:text-base">
+                    {product.name}
+                  </h2>
+
+                  {product.description && (
+                    <p className="mt-2 line-clamp-2 text-xs text-slate-500">
+                      {product.description}
+                    </p>
+                  )}
+
+                  <div className="mt-3">
+                    <span className="font-black">
+                      ₹{product.price.toLocaleString("en-IN")}
+                    </span>
+
+                    {product.oldPrice && (
+                      <span className="ml-2 text-xs text-slate-400 line-through">
+                        ₹{product.oldPrice.toLocaleString("en-IN")}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="mt-2 text-xs text-slate-500">
+                    {product.stock > 0
+                      ? `${product.stock} available`
+                      : "Out of stock"}
+                  </p>
+
+                  <button
+                    disabled={product.stock === 0}
+                    onClick={() =>
+                      navigate(`/cart/${product._id}`)
+                    }
+                    className={`mt-4 w-full rounded-lg py-2 text-sm font-bold ${
+                      product.stock > 0
+                        ? "bg-slate-950 text-white hover:bg-lime-500 hover:text-slate-950"
+                        : "cursor-not-allowed bg-slate-200 text-slate-400"
+                    }`}
+                  >
+                    {product.stock > 0
+                      ? "View Product"
+                      : "Out of Stock"}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          filteredProducts.length === 0 && (
+            <div className="py-20 text-center">
+              <h2 className="text-xl font-bold">
+                No products found
+              </h2>
+
+              <p className="mt-2 text-sm text-slate-500">
+                Try another search or category.
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

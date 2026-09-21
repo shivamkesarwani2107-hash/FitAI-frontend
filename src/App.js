@@ -23,25 +23,30 @@ import Beginner from "./frontend/beginner";
 import Intermediate from "./frontend/intermediate";
 import Advance from "./frontend/advance";
 import Expert from "./frontend/expert";
+import Cart from "./frontend/cart";
+import Profile from "./frontend/profile";
+import Order from "./frontend/order";
+import MyWorkout from "./frontend/myworkout";
+import ProtectedRoute from "./frontend/protectedroute";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/features" element={< Features />} />
-        <Route path="/workout" element={<Workout />} />
-        <Route path="/nutrition" element={< Nutrition />} />
+
+        <Route path="/features" element={<Features />} />
         <Route path="/footer" element={<Footer />} />
         <Route path="/help" element={<Help />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/condition" element={<Condition />} />
-        <Route path="/membership" element={<Membership />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/progress" element={<Progress />} />
+
         <Route path="/checkout" element={<Checkout />} />
+
         <Route path="/started" element={<Started />} />
         <Route path="/loss" element={<Loss />} />
         <Route path="/gain" element={<Gain />} />
@@ -52,6 +57,18 @@ function App() {
         <Route path="/advance" element={<Advance />} />
         <Route path="/expert" element={<Expert />} />
 
+        <Route element={<ProtectedRoute />}>
+          <Route path="/workout" element={<Workout />} />
+          <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/membership" element={<Membership />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/cart/:id" element={<Cart />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/orders" element={<Order />} />
+          <Route path="/my-workout" element={<MyWorkout />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

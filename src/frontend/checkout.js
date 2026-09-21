@@ -1,251 +1,242 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 function Checkout() {
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const checkoutData = location.state;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Agar checkout data nahi mila
-  if (!checkoutData) {
+  const data = location.state;
+
+  useEffect(() => {
+    const script = document.createElement("script");
+
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  if (!data) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
-        <div className="w-full max-w-md rounded-xl bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-black">No Order Found</h1>
+        <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-sm">
+          <h1 className="text-2xl font-black">
+            No Checkout Data
+          </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Please select a product or membership plan first.
+            Please select a membership plan first.
           </p>
 
           <button
-            onClick={() => navigate("/")}
-            className="mt-6 rounded-lg bg-slate-950 px-6 py-3 font-bold text-white hover:bg-lime-500 hover:text-slate-950"
+            onClick={() => navigate("/membership")}
+            className="mt-6 w-full rounded-lg bg-slate-950 py-3 font-bold text-white hover:bg-lime-500 hover:text-slate-950"
           >
-            Go Home
+            Go to Membership
           </button>
         </div>
       </div>
     );
   }
 
-  const isMembership = checkoutData.type === "membership";
+  const handlePayment = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-  const price = checkoutData.price || 0;
+      const savedUser = localStorage.getItem("user");
 
-  const handlePayment = () => {
-    // Abhi dummy payment
-    // Backend + Razorpay baad me connect karenge
+      if (!savedUser) {
+        navigate("/login");
+        return;
+      }
 
-    alert("Payment successful!");
+      const user = JSON.parse(savedUser);
 
-    navigate("/orders");
+      const response = await fetch(
+        "http://localhost:4000/payment/create-order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: data.price,
+            type: data.type,
+            duration: data.duration,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Unable to create payment order"
+        );
+      }
+
+      if (!window.Razorpay) {
+        throw new Error(
+          "Razorpay failed to load. Please refresh the page."
+        );
+      }
+
+      const options = {
+        key: "rzp_test_TFjzBqCubiX75P",
+        amount: result.order.amount,
+        currency: result.order.currency,
+        name: "FitAI",
+        description: `${data.duration} Membership`,
+        order_id: result.order.id,
+
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+
+        theme: {
+          color: "#84cc16",
+        },
+
+        handler: async function (paymentResponse) {
+          try {
+            const verifyResponse = await fetch(
+              "http://localhost:4000/payment/verify",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  razorpay_order_id:
+                    paymentResponse.razorpay_order_id,
+
+                  razorpay_payment_id:
+                    paymentResponse.razorpay_payment_id,
+
+                  razorpay_signature:
+                    paymentResponse.razorpay_signature,
+
+                  userId: user.id,
+
+                  type: data.type,
+
+                  duration: data.duration,
+
+                  price: data.price,
+                }),
+              }
+            );
+
+            const verifyData = await verifyResponse.json();
+
+            if (!verifyResponse.ok) {
+              throw new Error(
+                verifyData.message ||
+                  "Payment verification failed"
+              );
+            }
+
+            if (verifyData.success) {
+              navigate("/");
+            }
+          } catch (error) {
+            console.error(
+              "PAYMENT VERIFICATION ERROR:",
+              error
+            );
+
+            setError(error.message);
+            setLoading(false);
+          }
+        },
+
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.open();
+    } catch (error) {
+      console.error("PAYMENT ERROR:", error);
+
+      setError(error.message);
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-10 sm:px-6">
-      <div className="mx-auto max-w-5xl">
+    <div className="min-h-screen bg-slate-100 px-4 py-10">
+      <div className="mx-auto max-w-lg">
+        <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
+          <p className="text-sm font-bold text-lime-600">
+            FITAI CHECKOUT
+          </p>
 
-        {/* Header */}
-        <div>
-          <p className="font-bold text-lime-600">FITAI CHECKOUT</p>
-
-          <h1 className="mt-2 text-3xl font-black sm:text-5xl">
-            Checkout
+          <h1 className="mt-2 text-3xl font-black">
+            Complete Payment
           </h1>
 
-          <p className="mt-3 text-slate-500">
-            Review your order before completing the payment.
+          <div className="mt-8 rounded-xl bg-slate-50 p-5">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-slate-500">
+                Plan
+              </span>
+
+              <span className="font-bold">
+                {data.duration}
+              </span>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-sm text-slate-500">
+                Amount
+              </span>
+
+              <span className="text-2xl font-black">
+                ₹{data.price.toLocaleString("en-IN")}
+              </span>
+            </div>
+          </div>
+
+          {error && (
+            <div className="mt-5 rounded-lg bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+              {error}
+            </div>
+          )}
+
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className="mt-7 w-full rounded-lg bg-slate-950 py-4 font-bold text-white transition hover:bg-lime-500 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading
+              ? "Processing..."
+              : `Pay ₹${data.price.toLocaleString("en-IN")}`}
+          </button>
+
+          <button
+            onClick={() => navigate("/membership")}
+            className="mt-3 w-full rounded-lg border border-slate-200 py-3 font-bold text-slate-700 hover:bg-slate-50"
+          >
+            Back to Membership
+          </button>
+
+          <p className="mt-4 text-center text-xs text-slate-400">
+            Secure payment powered by Razorpay
           </p>
-        </div>
-
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-
-          {/* Customer Details */}
-          <div className="lg:col-span-2">
-            <div className="rounded-xl border border-slate-200 bg-white p-6">
-
-              <h2 className="text-xl font-black">
-                Customer Details
-              </h2>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-
-                <div>
-                  <label className="text-sm font-semibold">
-                    Full Name
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="Enter your name"
-                    className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-lime-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold">
-                    Email
-                  </label>
-
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-lime-500"
-                  />
-                </div>
-
-                {!isMembership && (
-                  <>
-                    <div>
-                      <label className="text-sm font-semibold">
-                        Phone
-                      </label>
-
-                      <input
-                        type="tel"
-                        placeholder="Enter phone number"
-                        className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-lime-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-semibold">
-                        Pincode
-                      </label>
-
-                      <input
-                        type="text"
-                        placeholder="Enter pincode"
-                        className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-lime-500"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="text-sm font-semibold">
-                        Address
-                      </label>
-
-                      <textarea
-                        rows="3"
-                        placeholder="Enter delivery address"
-                        className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-lime-500"
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Payment */}
-            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6">
-
-              <h2 className="text-xl font-black">
-                Payment Method
-              </h2>
-
-              <div className="mt-5 rounded-lg border-2 border-lime-500 bg-lime-50 p-4">
-                <div className="flex items-center gap-3">
-
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-lime-600">
-                    <div className="h-2.5 w-2.5 rounded-full bg-lime-600" />
-                  </div>
-
-                  <div>
-                    <p className="font-bold">
-                      Online Payment
-                    </p>
-
-                    <p className="text-xs text-slate-500">
-                      Secure payment via Razorpay
-                    </p>
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div>
-            <div className="sticky top-6 rounded-xl border border-slate-200 bg-white p-6">
-
-              <h2 className="text-xl font-black">
-                Order Summary
-              </h2>
-
-              <div className="mt-6 border-b border-slate-200 pb-5">
-
-                {isMembership ? (
-                  <>
-                    <p className="text-sm text-slate-500">
-                      Membership
-                    </p>
-
-                    <h3 className="mt-1 text-lg font-black">
-                      FitAI {checkoutData.duration}
-                    </h3>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-sm text-slate-500">
-                      Product
-                    </p>
-
-                    <h3 className="mt-1 text-lg font-black">
-                      {checkoutData.name || "Fitness Product"}
-                    </h3>
-                  </>
-                )}
-
-                <div className="mt-4 flex justify-between">
-                  <span className="text-sm text-slate-500">
-                    Price
-                  </span>
-
-                  <span className="font-bold">
-                    ₹{price.toLocaleString("en-IN")}
-                  </span>
-                </div>
-
-                <div className="mt-2 flex justify-between">
-                  <span className="text-sm text-slate-500">
-                    Discount
-                  </span>
-
-                  <span className="font-bold text-lime-600">
-                    ₹0
-                  </span>
-                </div>
-
-              </div>
-
-              <div className="flex justify-between py-5">
-
-                <span className="font-black">
-                  Total
-                </span>
-
-                <span className="text-xl font-black">
-                  ₹{price.toLocaleString("en-IN")}
-                </span>
-
-              </div>
-
-              <button
-                onClick={handlePayment}
-                className="w-full rounded-lg bg-slate-950 py-3 font-bold text-white transition hover:bg-lime-500 hover:text-slate-950"
-              >
-                Pay ₹{price.toLocaleString("en-IN")}
-              </button>
-
-              <p className="mt-4 text-center text-xs leading-5 text-slate-400">
-                By continuing, you agree to FitAI's terms and conditions.
-              </p>
-
-            </div>
-          </div>
-
         </div>
       </div>
     </div>

@@ -4,17 +4,23 @@ import { useNavigate } from "react-router-dom";
 
 function Home() {
   const navigate = useNavigate();
+
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-white text-slate-950">
-
-      {/* Navbar */}
       <nav className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
-
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-
-          {/* Logo */}
           <h1
             onClick={() => navigate("/")}
             className="cursor-pointer text-2xl font-black tracking-tight sm:text-3xl"
@@ -22,22 +28,12 @@ function Home() {
             Fit<span className="text-lime-500">AI</span>
           </h1>
 
-
-          {/* Desktop Navigation */}
           <div className="hidden items-center gap-7 md:flex">
-
             <button
               onClick={() => navigate("/workout")}
               className="font-semibold text-slate-700 transition hover:text-lime-600"
             >
               Workout
-            </button>
-
-            <button
-              onClick={() => navigate("/nutrition")}
-              className="font-semibold text-slate-700 transition hover:text-lime-600"
-            >
-              Nutrition
             </button>
 
             <button
@@ -54,33 +50,41 @@ function Home() {
               Shop
             </button>
 
-            <button
-              onClick={() => navigate("/login")}
-              className="rounded-lg bg-slate-950 px-5 py-2.5 font-bold text-white transition hover:bg-lime-500 hover:text-slate-950"
+             <button
+              onClick={() => navigate("/profile")}
+              className="font-semibold text-slate-700 transition hover:text-lime-600"
             >
-              Login
+              Profile
             </button>
 
+            {isLoggedIn ? (
+              <button
+                onClick={handleLogout}
+                className="rounded-lg bg-red-500 px-5 py-2.5 font-bold text-white transition hover:bg-red-600"
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="rounded-lg bg-slate-950 px-5 py-2.5 font-bold text-white transition hover:bg-lime-500 hover:text-slate-950"
+              >
+                Login
+              </button>
+            )}
           </div>
 
-
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-xl md:hidden"
           >
             {menuOpen ? "✕" : "☰"}
           </button>
-
         </div>
 
-
-        {/* Mobile Navigation */}
         {menuOpen && (
           <div className="border-t border-slate-200 bg-white px-5 py-5 md:hidden">
-
             <div className="flex flex-col gap-4">
-
               <button
                 onClick={() => {
                   navigate("/workout");
@@ -89,16 +93,6 @@ function Home() {
                 className="rounded-lg px-4 py-3 text-left font-semibold hover:bg-slate-100"
               >
                 Workout
-              </button>
-
-              <button
-                onClick={() => {
-                  navigate("/nutrition");
-                  setMenuOpen(false);
-                }}
-                className="rounded-lg px-4 py-3 text-left font-semibold hover:bg-slate-100"
-              >
-                Nutrition
               </button>
 
               <button
@@ -123,30 +117,43 @@ function Home() {
 
               <button
                 onClick={() => {
-                  navigate("/login");
+                  navigate("/profile");
                   setMenuOpen(false);
                 }}
-                className="rounded-lg bg-slate-950 px-4 py-3 text-left font-bold text-white"
+                className="rounded-lg px-4 py-3 text-left font-semibold hover:bg-slate-100"
               >
-                Login
+                Profile
               </button>
 
+              {isLoggedIn ? (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMenuOpen(false);
+                  }}
+                  className="rounded-lg bg-red-500 px-4 py-3 text-left font-bold text-white"
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    navigate("/login");
+                    setMenuOpen(false);
+                  }}
+                  className="rounded-lg bg-slate-950 px-4 py-3 text-left font-bold text-white"
+                >
+                  Login
+                </button>
+              )}
             </div>
-
           </div>
         )}
-
       </nav>
 
-
-      {/* Hero Section */}
       <section className="bg-slate-100 px-5 py-20 sm:px-8 sm:py-28">
-
         <div className="mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-2">
-
-          {/* Hero Text */}
           <div>
-
             <p className="inline-block rounded-full bg-lime-100 px-4 py-2 text-sm font-black tracking-wide text-lime-700">
               AI POWERED FITNESS
             </p>
@@ -167,7 +174,6 @@ function Home() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-
               <button
                 onClick={() => navigate("/started")}
                 className="rounded-lg bg-lime-500 px-7 py-4 font-black text-slate-950 transition hover:bg-lime-400"
@@ -181,19 +187,12 @@ function Home() {
               >
                 EXPLORE WORKOUTS
               </button>
-
             </div>
-
           </div>
 
-
-          {/* Hero Visual */}
           <div className="relative">
-
             <div className="flex min-h-[380px] items-center justify-center overflow-hidden rounded-3xl bg-slate-950 p-8 sm:min-h-[480px]">
-
               <div className="text-center">
-
                 <p className="text-sm font-bold tracking-[0.3em] text-lime-400">
                   TRAIN
                 </p>
@@ -209,23 +208,14 @@ function Home() {
                 <p className="mt-6 text-sm text-slate-400">
                   Powered by FitAI
                 </p>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </section>
 
-
-      {/* Stats */}
       <section className="border-b border-slate-200 bg-white px-5 py-10 sm:px-8">
-
         <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 text-center md:grid-cols-4">
-
           <Stat
             number="24/7"
             text="AI Fitness Support"
@@ -245,19 +235,12 @@ function Home() {
             number="1"
             text="Complete Fitness Platform"
           />
-
         </div>
-
       </section>
 
-
-      {/* Features */}
       <section className="px-5 py-20 sm:px-8 sm:py-24">
-
         <div className="mx-auto max-w-7xl">
-
           <div className="max-w-2xl">
-
             <p className="font-black text-lime-600">
               EVERYTHING YOU NEED
             </p>
@@ -269,12 +252,9 @@ function Home() {
                 GET BETTER.
               </span>
             </h2>
-
           </div>
 
-
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-
             <FeatureCard
               number="01"
               title="AI Workout"
@@ -295,21 +275,13 @@ function Home() {
               description="Track your body weight, measurements and workout progress as you improve."
               onClick={() => navigate("/progress")}
             />
-
           </div>
-
         </div>
-
       </section>
 
-
-      {/* Dark CTA */}
       <section className="bg-slate-950 px-5 py-20 text-white sm:px-8 sm:py-24">
-
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
-
           <div>
-
             <p className="font-bold text-lime-400">
               YOUR FITNESS. YOUR RULES.
             </p>
@@ -321,7 +293,6 @@ function Home() {
                 STRONGER?
               </span>
             </h2>
-
           </div>
 
           <button
@@ -330,21 +301,14 @@ function Home() {
           >
             CREATE MY FITNESS PLAN →
           </button>
-
         </div>
-
       </section>
 
-
-      {/* Footer */}
       <Footer />
-
     </div>
   );
 }
 
-
-/* Stat Component */
 function Stat({ number, text }) {
   return (
     <div>
@@ -359,8 +323,6 @@ function Stat({ number, text }) {
   );
 }
 
-
-/* Feature Card */
 function FeatureCard({
   number,
   title,
@@ -372,9 +334,7 @@ function FeatureCard({
       onClick={onClick}
       className="group cursor-pointer rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-lime-400 hover:shadow-xl"
     >
-
       <div className="flex items-center justify-between">
-
         <span className="text-sm font-black text-lime-600">
           {number}
         </span>
@@ -382,7 +342,6 @@ function FeatureCard({
         <span className="text-xl transition group-hover:translate-x-1">
           →
         </span>
-
       </div>
 
       <h3 className="mt-8 text-2xl font-black">
@@ -396,10 +355,8 @@ function FeatureCard({
       <p className="mt-6 font-bold text-lime-600">
         Explore →
       </p>
-
     </div>
   );
 }
-
 
 export default Home;

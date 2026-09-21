@@ -47,7 +47,7 @@ function Footer() {
                 onClick={() => navigate("/workout")}
                 className="cursor-pointer hover:text-lime-400"
               >
-                Workouts
+                Workout
               </p>
 
               <p
