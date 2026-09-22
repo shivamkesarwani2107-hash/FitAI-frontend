@@ -6,6 +6,10 @@ function Nutrition() {
 
   const [dietType, setDietType] = useState("veg");
 
+  const [dietPlan, setDietPlan] = useState("");
+  const [dietLoading, setDietLoading] = useState(false);
+  const [dietError, setDietError] = useState("");
+
   const meals = {
     veg: [
       {
@@ -56,11 +60,61 @@ function Nutrition() {
 
   const currentMeals = meals[dietType];
 
+  const generateDietPlan = async () => {
+    try {
+      setDietError("");
+      setDietPlan("");
+
+      const savedUser = localStorage.getItem("user");
+
+      if (!savedUser) {
+        setDietError("Please login first.");
+        return;
+      }
+
+      const user = JSON.parse(savedUser);
+
+      if (!user?.id) {
+        setDietError("User information not found. Please login again.");
+        return;
+      }
+
+      setDietLoading(true);
+
+      const response = await fetch(
+        "http://localhost:4000/ai/diet-plan",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || "Failed to generate diet plan"
+        );
+      }
+
+      setDietPlan(data.plan);
+    } catch (error) {
+      console.error("AI DIET ERROR:", error);
+      setDietError(error.message || "Something went wrong");
+    } finally {
+      setDietLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 sm:py-12">
       <div className="mx-auto max-w-6xl">
 
-        {/* Back */}
         <button
           onClick={() => navigate("/")}
           className="mb-8 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold transition hover:border-lime-400 hover:bg-lime-50"
@@ -68,7 +122,6 @@ function Nutrition() {
           ← Back
         </button>
 
-        {/* Header */}
         <div className="rounded-3xl bg-white p-6 shadow-sm sm:p-10">
           <p className="font-black text-lime-600">
             FITAI NUTRITION
@@ -84,7 +137,6 @@ function Nutrition() {
           </p>
         </div>
 
-        {/* Diet Selection */}
         <section className="mt-8">
           <h2 className="text-2xl font-black">
             Choose Your Diet
@@ -96,7 +148,6 @@ function Nutrition() {
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
 
-            {/* Veg */}
             <button
               onClick={() => setDietType("veg")}
               className={`rounded-2xl border-2 p-6 text-left transition ${
@@ -128,7 +179,6 @@ function Nutrition() {
               )}
             </button>
 
-            {/* Non Veg */}
             <button
               onClick={() => setDietType("nonVeg")}
               className={`rounded-2xl border-2 p-6 text-left transition ${
@@ -163,7 +213,6 @@ function Nutrition() {
           </div>
         </section>
 
-        {/* Nutrition Stats */}
         <section className="mt-10">
           <h2 className="text-2xl font-black">
             Daily Nutrition
@@ -202,7 +251,6 @@ function Nutrition() {
           </div>
         </section>
 
-        {/* Meals */}
         <section className="mt-10">
           <div>
             <h2 className="text-2xl font-black">
@@ -246,32 +294,61 @@ function Nutrition() {
           </div>
         </section>
 
-        {/* AI CTA */}
         <section className="mt-10 rounded-3xl bg-slate-950 p-6 text-white sm:p-10">
 
           <p className="text-sm font-black uppercase tracking-widest text-lime-400">
-            FitAI Coach 🤖
+            FitAI AI Coach 🤖
           </p>
 
           <h2 className="mt-2 text-2xl font-black sm:text-3xl">
-            Need a personalized meal plan?
+            Generate Your AI Diet Plan
           </h2>
 
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-            Later, FitAI can generate personalized nutrition recommendations
-            based on your profile, goals, activity and food preferences.
+            Get personalized general nutrition guidance based on your
+            FitAI profile, goals, activity level and food preference.
           </p>
 
           <button
-            onClick={() => navigate("/ai-coach")}
-            className="mt-6 rounded-xl bg-lime-400 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-300"
+            onClick={generateDietPlan}
+            disabled={dietLoading}
+            className="mt-6 rounded-xl bg-lime-400 px-6 py-3 text-sm font-black text-slate-950 transition hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Ask FitAI →
+            {dietLoading
+              ? "Creating Plan..."
+              : "Generate AI Diet Plan →"}
           </button>
+
+          {dietError && (
+            <div className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+              {dietError}
+            </div>
+          )}
+
+          {dietPlan && (
+            <div className="mt-6 rounded-2xl bg-white p-5 text-slate-700">
+
+              <h3 className="mb-4 text-lg font-black text-slate-950">
+                Your AI Diet Plan
+              </h3>
+
+              <div className="whitespace-pre-wrap leading-7">
+                {dietPlan}
+              </div>
+
+              <button
+                onClick={generateDietPlan}
+                disabled={dietLoading}
+                className="mt-6 rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white hover:bg-lime-500 hover:text-slate-950 disabled:opacity-60"
+              >
+                {dietLoading ? "Creating..." : "Generate Again"}
+              </button>
+
+            </div>
+          )}
 
         </section>
 
-        {/* Note */}
         <p className="mt-6 text-center text-xs leading-5 text-slate-400">
           These meal suggestions are general examples. Individual nutrition
           requirements can vary based on personal factors and activity.

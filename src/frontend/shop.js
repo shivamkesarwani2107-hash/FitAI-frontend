@@ -11,6 +11,11 @@ function Shop() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiAdvice, setAiAdvice] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -36,6 +41,63 @@ function Shop() {
 
     fetchProducts();
   }, []);
+
+  const getProductAdvice = async () => {
+    try {
+      setAiError("");
+      setAiAdvice("");
+
+      if (!aiQuestion.trim()) {
+        setAiError("Please enter your question.");
+        return;
+      }
+
+      const savedUser = localStorage.getItem("user");
+
+      if (!savedUser) {
+        setAiError("Please login first.");
+        return;
+      }
+
+      const user = JSON.parse(savedUser);
+
+      if (!user?.id) {
+        setAiError("User information not found. Please login again.");
+        return;
+      }
+
+      setAiLoading(true);
+
+      const response = await fetch(
+        "http://localhost:4000/ai/product-advice",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            question: aiQuestion,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || "Failed to get product advice"
+        );
+      }
+
+      setAiAdvice(data.advice);
+    } catch (error) {
+      console.error("AI PRODUCT ADVICE ERROR:", error);
+      setAiError(error.message || "Something went wrong");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const categories = [
     "All",
@@ -110,6 +172,62 @@ function Shop() {
           </button>
         </div>
 
+        <section className="mt-10 rounded-3xl bg-slate-950 p-6 text-white sm:p-8">
+          <p className="text-sm font-black uppercase tracking-widest text-lime-400">
+            FITAI AI
+          </p>
+
+          <h2 className="mt-2 text-2xl font-black sm:text-3xl">
+            Ask AI About Products
+          </h2>
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
+            Ask FitAI which available products may be relevant to your
+            fitness goal.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <input
+              type="text"
+              value={aiQuestion}
+              onChange={(e) => setAiQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  getProductAdvice();
+                }
+              }}
+              placeholder="Example: Which products are useful for muscle gain?"
+              className="w-full rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:border-lime-500"
+            />
+
+            <button
+              onClick={getProductAdvice}
+              disabled={aiLoading}
+              className="rounded-xl bg-lime-500 px-6 py-3 font-black text-slate-950 hover:bg-lime-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {aiLoading ? "Thinking..." : "Ask AI →"}
+            </button>
+          </div>
+
+          {aiError && (
+            <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+              {aiError}
+            </div>
+          )}
+
+          {aiAdvice && (
+            <div className="mt-6 rounded-2xl bg-white p-5 text-slate-700">
+              <h3 className="mb-3 text-lg font-black text-slate-950">
+                AI Product Advice
+              </h3>
+
+              <div className="whitespace-pre-wrap leading-7">
+                {aiAdvice}
+              </div>
+            </div>
+          )}
+        </section>
+
         {loading && (
           <div className="py-20 text-center">
             <p className="text-lg font-bold">
@@ -179,9 +297,7 @@ function Shop() {
 
                   <button
                     disabled={product.stock === 0}
-                    onClick={() =>
-                      navigate(`/cart/${product._id}`)
-                    }
+                    onClick={() => navigate(`/cart/${product._id}`)}
                     className={`mt-4 w-full rounded-lg py-2 text-sm font-bold ${
                       product.stock > 0
                         ? "bg-slate-950 text-white hover:bg-lime-500 hover:text-slate-950"

@@ -27,6 +27,7 @@ import Cart from "./frontend/cart";
 import Profile from "./frontend/profile";
 import Order from "./frontend/order";
 import MyWorkout from "./frontend/myworkout";
+import AiCoach from "./frontend/aicoach";
 import ProtectedRoute from "./frontend/protectedroute";
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/orders" element={<Order />} />
           <Route path="/my-workout" element={<MyWorkout />} />
+          <Route path="/ai-coach" element={<AiCoach />} />
         </Route>
       </Routes>
     </BrowserRouter>
