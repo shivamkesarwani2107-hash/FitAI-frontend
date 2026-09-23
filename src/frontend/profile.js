@@ -24,7 +24,7 @@ function Profile() {
     const fetchMembership = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/memberships/user/${user.id}`
+          `${process.env.REACT_APP_API_URL}/memberships/user/${user.id}`
         );
 
         const data = await response.json();

@@ -38,17 +38,17 @@ function AiCoach() {
       }
 
       const response = await fetch(
-        "http://localhost:4000/ai/workout-plan",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: user.id,
-          }),
-        }
-      );
+  `${process.env.REACT_APP_API_URL}/ai/workout-plan`,
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId: user.id,
+    }),
+  }
+);
 
       const data = await response.json();
 

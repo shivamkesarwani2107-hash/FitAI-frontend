@@ -1,4 +1,4 @@
-    import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Order() {
@@ -21,9 +21,8 @@ function Order() {
         const user = JSON.parse(savedUser);
 
         const response = await fetch(
-          `http://localhost:4000/orders/user/${user.id}`
+          `${process.env.REACT_APP_API_URL}/orders/user/${user.id}`
         );
-
         const data = await response.json();
 
         if (!response.ok) {

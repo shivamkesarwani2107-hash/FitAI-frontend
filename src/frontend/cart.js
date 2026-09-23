@@ -19,7 +19,7 @@ function Cart() {
         setError("");
 
         const response = await fetch(
-          `http://localhost:4000/products/${id}`
+          `${process.env.REACT_APP_API_URL}/products/${id}`
         );
 
         const data = await response.json();
@@ -93,7 +93,7 @@ function Cart() {
       const user = JSON.parse(savedUser);
 
       const response = await fetch(
-        "http://localhost:4000/payment/create-order",
+        `${process.env.REACT_APP_API_URL}/payment/create-order`,
         {
           method: "POST",
           headers: {
@@ -140,7 +140,7 @@ function Cart() {
         handler: async function (paymentResponse) {
           try {
             const verifyResponse = await fetch(
-              "http://localhost:4000/payment/verify",
+              `${process.env.REACT_APP_API_URL}/payment/verify`,
               {
                 method: "POST",
                 headers: {
@@ -177,7 +177,7 @@ function Cart() {
             if (!verifyResponse.ok) {
               throw new Error(
                 verifyData.message ||
-                  "Payment verification failed"
+                "Payment verification failed"
               );
             }
 

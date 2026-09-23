@@ -22,8 +22,9 @@ function Shop() {
         setLoading(true);
         setError("");
 
-        const response = await fetch("http://localhost:4000/products");
-
+        const response = await fetch(
+          `${process.env.REACT_APP_API_URL}/products`
+        );
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
@@ -67,9 +68,8 @@ function Shop() {
       }
 
       setAiLoading(true);
-
       const response = await fetch(
-        "http://localhost:4000/ai/product-advice",
+        `${process.env.REACT_APP_API_URL}/ai/product-advice`,
         {
           method: "POST",
           headers: {
@@ -81,7 +81,6 @@ function Shop() {
           }),
         }
       );
-
       const data = await response.json();
 
       if (!response.ok || !data.success) {
@@ -148,11 +147,10 @@ function Shop() {
             <button
               key={item}
               onClick={() => setCategory(item)}
-              className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold ${
-                category === item
-                  ? "bg-lime-500 text-slate-950"
-                  : "border border-slate-200 bg-white text-slate-600"
-              }`}
+              className={`whitespace-nowrap rounded-lg px-4 py-2 text-sm font-bold ${category === item
+                ? "bg-lime-500 text-slate-950"
+                : "border border-slate-200 bg-white text-slate-600"
+                }`}
             >
               {item}
             </button>
@@ -298,11 +296,10 @@ function Shop() {
                   <button
                     disabled={product.stock === 0}
                     onClick={() => navigate(`/cart/${product._id}`)}
-                    className={`mt-4 w-full rounded-lg py-2 text-sm font-bold ${
-                      product.stock > 0
-                        ? "bg-slate-950 text-white hover:bg-lime-500 hover:text-slate-950"
-                        : "cursor-not-allowed bg-slate-200 text-slate-400"
-                    }`}
+                    className={`mt-4 w-full rounded-lg py-2 text-sm font-bold ${product.stock > 0
+                      ? "bg-slate-950 text-white hover:bg-lime-500 hover:text-slate-950"
+                      : "cursor-not-allowed bg-slate-200 text-slate-400"
+                      }`}
                   >
                     {product.stock > 0
                       ? "View Product"

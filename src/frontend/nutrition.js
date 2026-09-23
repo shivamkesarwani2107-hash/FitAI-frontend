@@ -82,7 +82,7 @@ function Nutrition() {
       setDietLoading(true);
 
       const response = await fetch(
-        "http://localhost:4000/ai/diet-plan",
+        `${process.env.REACT_APP_API_URL}/ai/diet-plan`,
         {
           method: "POST",
           headers: {
@@ -150,11 +150,10 @@ function Nutrition() {
 
             <button
               onClick={() => setDietType("veg")}
-              className={`rounded-2xl border-2 p-6 text-left transition ${
-                dietType === "veg"
+              className={`rounded-2xl border-2 p-6 text-left transition ${dietType === "veg"
                   ? "border-lime-400 bg-lime-50"
                   : "border-slate-200 bg-white hover:border-lime-300"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-3xl">
@@ -181,11 +180,10 @@ function Nutrition() {
 
             <button
               onClick={() => setDietType("nonVeg")}
-              className={`rounded-2xl border-2 p-6 text-left transition ${
-                dietType === "nonVeg"
+              className={`rounded-2xl border-2 p-6 text-left transition ${dietType === "nonVeg"
                   ? "border-lime-400 bg-lime-50"
                   : "border-slate-200 bg-white hover:border-lime-300"
-              }`}
+                }`}
             >
               <div className="flex items-center gap-4">
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-3xl">

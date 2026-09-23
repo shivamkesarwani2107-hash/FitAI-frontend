@@ -27,7 +27,7 @@ function MyWorkout() {
         }
 
         const response = await fetch(
-          `http://localhost:4000/workouts/user/${user.id}`
+          `${process.env.REACT_APP_API_URL}/workouts/user/${user.id}`
         );
 
         const data = await response.json();
@@ -68,7 +68,7 @@ function MyWorkout() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/workouts/${workout._id}/exercises/${exerciseId}`,
+        `${process.env.REACT_APP_API_URL}/workouts/${workout._id}/exercises/${exerciseId}`,
         {
           method: "DELETE",
         }

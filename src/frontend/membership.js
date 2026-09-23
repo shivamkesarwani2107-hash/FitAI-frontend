@@ -52,7 +52,7 @@ function Membership() {
     const fetchMembership = async () => {
       try {
         const response = await fetch(
-          `http://localhost:4000/memberships/user/${user.id}`
+          `${process.env.REACT_APP_API_URL}/memberships/user/${user.id}`
         );
 
         const data = await response.json();
@@ -252,11 +252,10 @@ function Membership() {
                   return (
                     <div
                       key={plan.duration}
-                      className={`relative flex flex-col overflow-hidden rounded-3xl bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
-                        plan.popular
+                      className={`relative flex flex-col overflow-hidden rounded-3xl bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${plan.popular
                           ? "border-2 border-lime-500"
                           : "border border-slate-200"
-                      }`}
+                        }`}
                     >
 
                       {plan.popular && (
@@ -309,11 +308,10 @@ function Membership() {
                       <button
                         onClick={() => handleChoosePlan(plan)}
                         disabled={isCurrentPlan}
-                        className={`mt-8 w-full rounded-xl py-3.5 font-black transition ${
-                          isCurrentPlan
+                        className={`mt-8 w-full rounded-xl py-3.5 font-black transition ${isCurrentPlan
                             ? "cursor-not-allowed bg-slate-200 text-slate-500"
                             : "bg-slate-950 text-white hover:bg-lime-500 hover:text-slate-950"
-                        }`}
+                          }`}
                       >
                         {isCurrentPlan ? "Current Plan" : "Choose Plan"}
                       </button>
